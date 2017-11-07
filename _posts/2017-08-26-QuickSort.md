@@ -5,7 +5,7 @@ subtitle:   ""
 date:       "2017-8-26 16:32:59"
 author:     "杨光"
 header-img: "img/home-bg.jpg"
-catalog: true
+categories: [Algorithms]
 tags:
     - Algorithms
     - Java

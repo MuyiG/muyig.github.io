@@ -5,7 +5,7 @@ subtitle:   "从零开始写一个Servlet"
 date:       "2017-02-04 16:04:37"
 author:     "杨光"
 header-img: "img/home-bg.jpg"
-catalog: true
+categories: [uncategorized]
 tags:
     - Java
     - IDEA
