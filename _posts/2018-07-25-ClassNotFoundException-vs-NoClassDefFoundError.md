@@ -12,10 +12,12 @@ tags: []
 # 概述
 二者产生的原因都是在运行时找不到需要的类，但ClassNotFoundException是一种Checked Exception，NoClassDefFoundError是一种Error。
 
+```
 Exception和Error的区别：
 二者都是Throwable的子类，只有Throwable才能被throw和catch。
 Exception是程序运行过程中，可以预料的意外情况，应该被捕获，进行相应的处理。
 Error是指在正常情况下，不大可能出现的情况，绝大部分的Error都会导致程序自身（比如JVM）处于非正常的、不可恢复状态，所以不便于也不需要捕获。
+```
 
 # ClassNotFoundException
 当应用程序尝试通过诸如 Class.forName() 的方式来加载类，但是无法在Classpath下找到对应的类时，就会抛出ClassNotFoundException。eg：
@@ -84,8 +86,6 @@ Caused by: java.lang.ArithmeticException: / by zero
         at com.sunshinevvv.thinkinginjava.typeinfo.InitErrorClass.<clinit>(NoClassDefFoundErrorTest.java:15)
         ... 1 more
 ```
-
-
 
 # 参考资料
 * http://www.baeldung.com/java-classnotfoundexception-and-noclassdeffounderror 
