@@ -3,7 +3,6 @@ layout: post
 title: "ClassNotFoundException vs. NoClassDefFoundError"
 description: ""
 categories: [Java]
-tags: []
 ---
 
 * Kramdown table of contents
