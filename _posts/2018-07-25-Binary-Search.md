@@ -18,7 +18,7 @@ tags: [Algorithms, Java]
 
 
 # 核心算法
-其实上面的猜数字游戏暗含了一个前提，那就是搜索范围是一个不重复的有序的集合（1 - 100），对于无序集合，二分搜索是不适用的，这一点请务必注意。
+其实上面的猜数字游戏暗含了一个前提，那就是搜索范围是一个不重复的有序的集合（1 - 100），对于无序集合，二分搜索是不适用的，对于存在重复的情况，只会返回第一个搜索到的结果，这一点请务必注意。
 
 经过抽象，二分查找的核心算法是：给定一个有序且不存在重复元素的整数数组nums，和一个目标数字target，查找target在nums中的下标位置。代码如下：
 
@@ -45,6 +45,7 @@ public int search(int[] nums, int target) {
 # 细节是魔鬼
 ## 计算mid
 一种直观的想法是： int mid = (low + high) / 2;
+
 但是不要这么做，因为这样写会在low和high都很大时造成整型溢出。
 
 ## low和high的含义
@@ -60,4 +61,4 @@ public int search(int[] nums, int target) {
 搜索结束后，如果找到了目标，则mid指向target所在的下标。
 那如果未命中呢？就意味着循环终止，low > high，实际上循环终止时，一定是low = high + 1（这一点可以自己推演分析一下）。
 
-此时这个条件依旧成立：low左侧（不含low）的元素都是小于target的，high右侧（不含high）的元素都是大于target的。那么就可以分析出target的位置是理应介于此时的high和low之间的。
+此时这个条件依旧成立：low左侧（不含low）的元素都是小于target的，high右侧（不含high）的元素都是大于target的。那么就可以分析出此时有：nums[high] < target < nums[low]。当然需要注意，当target小于（或者大于）nums所有元素时，high（或者low）会越界。
