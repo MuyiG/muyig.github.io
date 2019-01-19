@@ -33,14 +33,14 @@ tags: [Java, 并发]
 ## Executor
 
 An object that executes submitted Runnable tasks. This interface provides a way of decoupling task submission from the mechanics of how each task will be run, including details of thread use, scheduling, etc. An Executor is normally used instead of explicitly creating threads. For example, rather than invoking new Thread(new(RunnableTask())).start() for each of a set of tasks, you might use:
-```
+```java
    Executor executor = anExecutor;
    executor.execute(new RunnableTask1());
    executor.execute(new RunnableTask2());
    ...
 ```
 However, the Executor interface does not strictly require that execution be asynchronous. In the simplest case, an executor can run the submitted task immediately in the caller's thread:
-```
+```java
 class DirectExecutor implements Executor {
    public void execute(Runnable r) {
      r.run();
@@ -48,7 +48,7 @@ class DirectExecutor implements Executor {
 }
 ```
 More typically, tasks are executed in some thread other than the caller's thread. The executor below spawns a new thread for each task.
-```
+```java
 class ThreadPerTaskExecutor implements Executor {
    public void execute(Runnable r) {
      new Thread(r).start();
@@ -78,7 +78,7 @@ JDK还很贴心的给了两个实例：
 1.一个多线程的网络服务器：
 
 Here is a sketch of a network service in which threads in a thread pool service incoming requests. It uses the preconfigured Executors.newFixedThreadPool factory method:
-```
+```java
 class NetworkService implements Runnable {
    private final ServerSocket serverSocket;
    private final ExecutorService pool;
@@ -112,7 +112,7 @@ class Handler implements Runnable {
 2.终止ExecutorService
 
 The following method shuts down an ExecutorService in two phases, first by calling shutdown to reject incoming tasks, and then calling shutdownNow, if necessary, to cancel any lingering tasks:
-```
+```java
 void shutdownAndAwaitTermination(ExecutorService pool) {
    pool.shutdown(); // Disable new tasks from being submitted
    try {
@@ -217,7 +217,7 @@ If hook or callback methods throw exceptions, internal worker threads may in tur
 JDK里也给了一个扩展Hook Methods的例子：
 
 Extension example. Most extensions of this class override one or more of the protected hook methods. For example, here is a subclass that adds a simple pause/resume feature:
-```
+```java
 class PausableThreadPoolExecutor extends ThreadPoolExecutor {
    private boolean isPaused;
    private ReentrantLock pauseLock = new ReentrantLock();
