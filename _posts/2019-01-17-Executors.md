@@ -153,12 +153,9 @@ Thread pools address two different problems: they usually provide improved perfo
 
 To be useful across a wide range of contexts, this class provides many adjustable parameters and extensibility hooks. However, programmers are urged to use the more convenient Executors factory methods Executors.newCachedThreadPool (unbounded thread pool, with automatic thread reclamation), Executors.newFixedThreadPool (fixed size thread pool) and Executors.newSingleThreadExecutor (single background thread), that preconfigure settings for the most common usage scenarios. Otherwise, use the following guide when manually configuring and tuning this class:
 
-一般情况下建议直接使用 Executors 提供的各种工厂方法来创建 ThreadPoolExecutor ，即可覆盖绝大多数应用情景。
+一般情况下直接使用 Executors 提供的各种工厂方法来创建 ThreadPoolExecutor ，即可覆盖绝大多数应用情景。
 
-如果只是为了概念上区分理解，本文到这里也就可以结束了。以下是延伸阅读的分割线……
-
----
-如果想要针对自己的需求定制 ThreadPoolExecutor，那么进一步了解其中的核心概念是必须的：
+但是如果想要针对自己的需求定制 ThreadPoolExecutor，那么进一步了解其中的核心概念是必须的：
 
 *   Core and maximum pool sizes
 
