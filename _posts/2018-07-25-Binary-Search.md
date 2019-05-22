@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "二分查找 - Binary Search"
+title: "二分查找 - BinarySearch"
 description: ""
 categories: [Algorithms]
 tags: [Algorithms, Java]

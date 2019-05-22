@@ -1,4 +1,5 @@
 en: &en
+  home: 'Home'
   about: 'About'
   articles: 'Articles'
   back_to_top: 'Back to Top'
@@ -38,6 +39,7 @@ en-ca:
 en-nz:
   <<: *en
 zh: &zh
+  home: '首页'
   about: '关于'
   articles: '文章列表'
   back_to_top: '返回顶部'
