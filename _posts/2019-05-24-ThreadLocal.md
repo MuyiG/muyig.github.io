@@ -209,7 +209,7 @@ public class ContextInfoThreadLocal {
     @Around("pointcut()")
     public Object around(ProceedingJoinPoint point) {
         try {
-            ContextInfo ContextInfo = getContextInfo();
+            ContextInfo ContextInfo = getContextInfo(point.getArgs());
             // 把 contextInfo 信息放入ThreadLocal
             ContextInfoThreadLocal.set(contextInfo);
             return point.proceed(point.getArgs());
