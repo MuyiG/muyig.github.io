@@ -221,6 +221,31 @@ public class ContextInfoThreadLocal {
     }
 ```
 
+有一点需要注意，因为 ThreadLocal 是线程局部变量，在一个线程里设置的值，只有在本线程内才可以获取，如果进行了线程切换，就无法拿到了。
+但是实际应用中，为了提高接口性能，很多时候都会创建新线程进行一些并行处理，这时候如果想要在新线程中也能获取到上下文信息，就要在线程间传递 ContextInfo 了。
+为了避免每次都写相同的代码，可以包装一下 Callable 来实现这个目的：
+```java
+public class CallableWrapper<V> implements Callable<V> {
+    private final ContextInfo contextInfo;
+
+    private final Callable<V> task;
+
+    public CallableWrapper(ContextInfo contextInfo, Callable<V> task) {
+        this.contextInfo = contextInfo;
+        this.task = task;
+    }
+
+    @Override
+    public V call() throws Exception {
+        ContextInfoThreadLocal.set(contextInfo);
+        try {
+            return task.call();
+        } finally {
+            ContextInfoThreadLocal.remove();
+        }
+    }
+}
+```
 
 # 5.参考文章
 
