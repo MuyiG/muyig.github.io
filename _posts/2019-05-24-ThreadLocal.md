@@ -182,7 +182,47 @@ ThreadLocal.ThreadLocalMap的 Key 实现是弱引用，也即图中的虚线。�
 
 正确的处理方式是：**每次使用完 ThreadLocal，都调用它的 remove() 方法清除数据** ，这样才能从根源上避免内存泄漏问题。
 
-# 4.参考文章
+# 4.应用实战
+下面以在一次请求中透传上下文信息为例，来实际演示 ThreadLocal 用法。
+
+首先创建一个类来管理 ThreadLocal 实例：
+```java
+public class ContextInfoThreadLocal {
+
+    private static final ThreadLocal<ContextInfo> CONTEXT_INFO_THREAD_LOCAL = new ThreadLocal<>();
+
+    public static void set(ContextInfo contextInfo) {
+        CONTEXT_INFO_THREAD_LOCAL.set(contextInfo);
+    }
+
+    public static ContextInfo get() {
+        return CONTEXT_INFO_THREAD_LOCAL.get();
+    }
+
+    public static void remove() {
+        CONTEXT_INFO_THREAD_LOCAL.remove();
+    }
+}
+```
+然后在请求的入口处把上下文信息放进去，最好使用AOP的方式：
+```java
+    @Around("pointcut()")
+    public Object around(ProceedingJoinPoint point) {
+        try {
+            ContextInfo ContextInfo = getContextInfo();
+            // 把 contextInfo 信息放入ThreadLocal
+            ContextInfoThreadLocal.set(contextInfo);
+            return point.proceed(point.getArgs());
+        } catch (Throwable t) {
+            // ...
+        } finally {
+            ContextInfoThreadLocal.remove(); // 记得清理ThreadLocal
+        }
+    }
+```
+
+
+# 5.参考文章
 
 [https://blog.xiaohansong.com/ThreadLocal-memory-leak.html](https://blog.xiaohansong.com/ThreadLocal-memory-leak.html)
 
