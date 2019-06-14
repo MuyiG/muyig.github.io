@@ -166,7 +166,7 @@ private void remove(ThreadLocal<?> key) {
 
 首先看一下 ThreadLocal 运行时的内存示意图：
 
-![ThreadLocal 运行时内存示意图](https://upload-images.jianshu.io/upload_images/73236-3830c23366e24ad7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![ThreadLocal 运行时内存示意图]({{ site.baseurl }}/assets/images/posts/threadlocal.png)
 
 ThreadLocal.ThreadLocalMap的 Key 实现是弱引用，也即图中的虚线。弱引用不会阻止 GC，因此考虑下面的情况：
 

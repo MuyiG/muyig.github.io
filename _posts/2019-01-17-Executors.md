@@ -24,7 +24,7 @@ tags: [Java, 并发]
 
 关系图示：
 
-![](https://upload-images.jianshu.io/upload_images/73236-3fd9293df1fd7bd1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![]({{ site.baseurl }}/assets/images/posts/executors.png)
 
 # 详细分析
 

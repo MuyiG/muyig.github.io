@@ -19,7 +19,7 @@ tags:
 2. 递归地对左右两个子数组进行快速排序，只要保证左右两个子数组分别有序了，整个数组也就有序了。
 
 维基百科上面的一个动画，比较形象地解释了这个过程：  
-![Sorting_quicksort_anim.gif](http://upload-images.jianshu.io/upload_images/73236-3946c2309a769111.gif?imageMogr2/auto-orient/strip)
+![Sorting_quicksort_anim.gif]({{ site.baseurl }}/assets/images/posts/quick_sort.gif)
 
 # 实现
 如下是快排的一个 Java 实现：

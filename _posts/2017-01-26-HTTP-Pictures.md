@@ -81,7 +81,7 @@ HTTP实体是HTTP请求和响应传输的主体内容，根据场景不同可能
 但是随着HTTP的应用越来越广泛，已经超出了最初设计用来传递文档的初衷，逐渐变得越来越复杂，像是电商，社交这样的重量级Web应用都构架在了HTTP之上，这样的系统肯定有保存用户状态的需求，于是大家设计出了Cookie机制来实现。
 > Cookie会根据从服务器端发送的响应报文内的一个叫做`Set-Cookie`的首部字段信息，通知客户端保存Cookie。当下次客户端再往该服务器发送请求时，客户端会自动在请求报文中加入Cookie值后发送出去。服务器端发现客户端发送过来的Cookie后，会去检查究竟是从哪一个客户端发来的连接请求，然后对比服务器上的记录，最后得到之前的状态信息。
 
-![一次Cookie请求示意图](http://upload-images.jianshu.io/upload_images/73236-57070247c70b5d59.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![一次Cookie请求示意图]({{ site.baseurl }}/assets/images/posts/http1.png)
 
 有关HTTP Cookie更加详细的介绍可以参见[Wiki](https://zh.wikipedia.org/wiki/Cookie)。
 
