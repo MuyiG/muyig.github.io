@@ -5,10 +5,8 @@ subtitle:   ""
 date:       "2017-8-26 16:32:59"
 author:     "杨光"
 header-img: "img/home-bg.jpg"
-categories: [Algorithms]
-tags:
-    - Algorithms
-    - Java
+categories: [算法]
+tags: [Algorithms, Java]
 ---
 
 快速排序可能是应用最广的排序算法了，这里来简单分析一下这个算法。

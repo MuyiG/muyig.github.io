@@ -2,12 +2,8 @@
 layout:     post
 title:      "HTTP协议中GET和POST方法的区别"
 subtitle:   "记一次一波三折的探索之旅"
-date:       "2017-02-09 14:59:21"
-author:     "杨光"
-header-img: "img/home-bg.jpg"
-categories: [uncategorized]
-tags:
-    - HTTP
+categories: [计算机基础]
+tags: [HTTP]
 ---
 
 HTTP协议中GET和POST方法的区别已经是老生常谈了，也是面试热门问题，我之前对此只有一个粗浅的印象，这里来认真探讨一下。

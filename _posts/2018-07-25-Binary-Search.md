@@ -2,7 +2,7 @@
 layout: post
 title: "二分查找 - BinarySearch"
 description: ""
-categories: [Algorithms]
+categories: [算法]
 tags: [Algorithms, Java]
 ---
 

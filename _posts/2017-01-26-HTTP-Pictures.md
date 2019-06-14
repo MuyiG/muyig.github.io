@@ -1,14 +1,8 @@
 ---
 layout:     post
 title:      "《图解HTTP》读书笔记"
-subtitle:   "最基本的HTTP知识"
-date:       "2017-01-26 17:17:58"
-author:     "杨光"
-header-img: "img/home-bg.jpg"
 categories: [读书笔记]
-tags:
-    - 读书笔记
-    - HTTP
+tags: [HTTP]
 ---
 
 ## 基本概念
