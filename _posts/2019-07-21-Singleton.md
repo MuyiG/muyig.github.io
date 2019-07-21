@@ -46,6 +46,7 @@ public class Singleton {
 有时不想要实例过早初始化，而是在真正使用到的时候才初始化，这种策略被称为懒加载。
 
 ### 2.1 基础实现
+
 ```java
 public class LazySingletonNaive {
 
@@ -71,14 +72,17 @@ public class LazySingletonNaive {
 ### 2.2 线程安全的懒加载
 
 * 方法1：直接对 `getInstance` 方法加 `synchronized` 锁
+
 ```java
 ...
     public static synchronized LazySingletonNaive getInstance() {
 ...
 ```
+
 这种方式最简单，但会带来同步性能开销，仅在应用可以接受这种性能开销时使用。
 
 * 方法2：Double Check Lock
+
 ```java
 public class LazySingletonDCL {
 
@@ -129,6 +133,7 @@ instance 实例必须要使用 volatile 修饰，是为了避免部分初始化�
 > 其实除了禁用指令重排序， volatile 还有其他语义，这就涉及到可见性和 Java 内存模型的话题了，就先不展开了，后面再详细探讨。
 
 * 方法3：Holder 方式
+
 ```java
 public class LazySingletonHolder {
 
@@ -146,6 +151,7 @@ public class LazySingletonHolder {
 
 }
 ```
+
 这里新创建了一个静态私有内部类 `Holder`，它的唯一目的就是存储一个静态的 instance 实例。然后这个类只有在 `getInstance` 方法调用时才会初始化，从而把 instance 实例初始化，实现了懒加载。
 
 这种方式也比较简单，同时避免了同步的性能开销，推荐使用。
