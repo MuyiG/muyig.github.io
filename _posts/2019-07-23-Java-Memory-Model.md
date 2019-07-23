@@ -11,7 +11,7 @@ tags:
 
 # 一、概述
 
-在之前《单例模式的Java实现与思考》一文里讲到，为了使用 DCL 实现线程安全的单例模式，需要对实例变量使用 volatile 关键字修饰，并简单说明了下原因是为了避免指令重排序而导致的部分初始化问题，本文就来深入研究一下其背后涉及到的 Java 内存模型的相关知识。
+在之前 [单例模式的Java实现与思考]({{ site.baseurl }}/blog/2019/07/21/Singleton/) 一文里讲到，为了使用 DCL 实现线程安全的单例模式，需要对实例变量使用 volatile 关键字修饰，并简单说明了下原因是为了避免指令重排序而导致的部分初始化问题，本文就来深入研究一下其背后涉及到的 Java 内存模型的相关知识。
 
 # 二、背景知识
 
@@ -96,7 +96,7 @@ public class PossibleReordering {
 
 有了上面的背景知识，接下来探讨 Java 的内存模型。
 
-Java虚拟机规范中定义了一种内存模型（Java Memory Model, JMM），目的是屏蔽掉各种平台级的内存模型差异，以实现让Java程序在各种平台下都能达到一致的内存访问效果。
+Java虚拟机规范中定义了一种内存模型（Java Memory Model, JMM），目的是屏蔽掉各种平台的内存模型差异，以实现让Java程序在各种平台下都能达到一致的内存访问效果。
 
 ## 1. 主内存与工作内存
 
@@ -106,13 +106,14 @@ Java虚拟机规范中定义了一种内存模型（Java Memory Model, JMM），
 
 ![主内存与工作内存]({{ site.baseurl }}/assets/images/posts/JavaWorkingMemory.png)
 
-类似于多处理器中存在的缓存一致性问题，主内存与工作内存之间也存在一致性问题，再加上指令重排序，在多线程环境下读写共享变量的行为变得十分难以捉摸，为了解决这个问题，JMM 定义了一系列的访问规则，但是这种定义十分烦琐，实践起来很麻烦，所以可以使用这种定义的一个等效判断规则——Happens-before。
-
 ## 3. Happens-before 规则
+
+类似于多处理器中存在的缓存一致性问题，主内存与工作内存之间也存在一致性问题，再加上指令重排序，在多线程环境下读写共享变量的行为变得十分难以捉摸。
+为了解决这个问题，JMM 定义了一系列的访问规则，但是这种定义十分烦琐，实践起来很麻烦，所以可以使用这种定义的一个等效判断规则——Happens-before。
 
 规则定义：**如果操作A Happens-before 操作B，那么操作A执行的结果都会对操作B可见。**
 
-注意这里的操作A和操作B可能分别属于不同的线程，而且 Happens-before 关系只关注可见性，和时间上的顺序没有关系。
+注意这里的操作A和操作B可能分别属于不同的线程，而且 Happens-before 关系关注的是可见性，和时间顺序没有关系。
 
 举一个例子演示一下这个规则：
 
@@ -144,6 +145,84 @@ i= 2；
 
 # 4、volatile
 
+volatile 是 JVM 提供的一个轻量级的同步修饰符，具备两层语义：
+1. 保证此变量对所有线程的可见性。这个其实对应上面 Happens-before 规则的 volatile 变量规则。
+2. 禁止指令重排序优化。
+
+看下面这个例子：
+
+```java
+public class NoVisibility { 
+    private static boolean ready;
+    private static int number;
+    private static class ReaderThread extends Thread { 
+        public void run() {
+            while (!ready)
+                Thread.yield();
+            System.out.println(number);
+        }
+    }
+    public static void main(String[] args) { 
+        new ReaderThread().start();
+        number = 42;
+        ready = true;
+    } 
+}
+```
+
+开发者可能会想当然的以为 `ReaderThread` 会很快结束，但由于不存在可见性的保证，在 main 线程里对于 ready 变量的修改很可能对 `ReaderThread` 不可见，它可能会一直循环下去。
+更有甚者，由于指令重排序的存在，很可能 `ReaderThread` 会读取到对 `number` 的修改，而读取不到对 `ready` 变量的修改，从而出现循环输出 42 这样的迷惑行为。
+
+而通过把 `ready` 和 `number` 变量声明为 `volatile` 的，就可以保证 main 线程里的修改对于 ReaderThread 的可见性，同时禁用了指令重排序，保证程序按照期望执行。
+
+volatile 还有一个经典的使用场景，就是在DCL的单例中：
+
+```java
+public class LazySingletonDCL {
+
+    // 为了更方便分析问题，这里引入两个成员变量
+    private int i = 10;
+    private String s = "OK";
+
+    private static volatile LazySingletonDCL instance; // 这里必须使用 volatile 关键字，是为了避免部分初始化问题，下文详述。
+
+    private LazySingletonDCL() {
+        System.out.println("LazySingletonDCL()");
+    }
+
+    public static LazySingletonDCL getInstance() {
+        if (instance == null) {
+            synchronized (LazySingletonNaive.class) {
+                if (instance == null) {
+                    instance = new LazySingletonDCL();
+                }
+            }
+        }
+        return instance;
+    }
+
+}
+
+```
+
+instance 实例必须要使用 volatile 修饰，是为了避免部分初始化问题，这里阐述一下原因。
+
+问题核心在于`instance = new LazySingletonDCL()` 这行语句并不是一个原子操作，实际上会被解析为如下三个步骤：
+
+1. 为实例分配内存空间 
+2. 初始化实例（设置 i 和 s 的值）
+3. 把实例指向刚刚分配的内存
+
+上面操作2依赖于操作1，但是操作3并不依赖于操作2，所以JVM可以对它们进行重排序，经过重排序后如下：
+
+1. 为实例分配内存空间 
+2. 把实例指向刚刚分配的内存
+3. 初始化实例（设置 i 和 s 的值）
+
+那么在步骤2执行完毕后，还未执行步骤3这一时刻，instance 实例不为 null，但是还未执行完成初始化（i 和 s 的值还是默认值）。
+假如恰好在此时，另一个线程进入 getInstance() 方法，判断 instance 实例不为 null，就直接返回了那个尚未被初始化完成的实例，那么它拿到的 i 和 s 就是默认值 0 和 null，而不是期望的 10 和 "OK"。
+
+而加了 volatile 修饰符之后，就可以指示 JVM 不要进行指令重排，从而解决了部分初始化问题。
 
 # 参考资料
 * 《Java Concurrency In Practice》

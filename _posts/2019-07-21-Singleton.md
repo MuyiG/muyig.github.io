@@ -86,10 +86,6 @@ public class LazySingletonNaive {
 ```java
 public class LazySingletonDCL {
 
-    // 为了更好分析问题，这里引入两个成员变量
-    private int i = 10;
-    private String s = "OK";
-
     private static volatile LazySingletonDCL instance; // 这里必须使用 volatile 关键字，是为了避免部分初始化问题，下文详述。
 
     private LazySingletonDCL() {
@@ -114,23 +110,7 @@ public class LazySingletonDCL {
 1. 首先判断 instance 是否为空，如果不为空，则说明已经初始化过了，可以直接使用，这种情况下可以不用进入同步块，避免了绝大多数情况下的性能开销；
 2. 如果为空，则说明需要进行初始化，进入同步块，拿到锁之后需要再检查一次 instance 是否为空（Double Check 名称的来源)，如果 instance 为空，则执行初始化，否则说明其他线程已经初始化过了，直接返回即可。
 
-instance 实例必须要使用 volatile 修饰，是为了避免部分初始化问题。所谓部分初始化，就是指一个对象在还未完成创建时就暴露给了外部使用。这里阐述一下原因。
-
-问题核心在于`instance = new LazySingletonDCL()` 这行语句并不是一个原子操作，实际上会被解析为如下三个步骤：
-1. 为实例分配内存空间 
-2. 初始化实例（设置 i 和 s 的值）
-3. 把实例指向刚刚分配的内存
-
-上面操作2依赖于操作1，但是操作3并不依赖于操作2，所以JVM可以以“优化”为目的对它们进行重排序，经过重排序后如下：
-1. 为实例分配内存空间 
-2. 把实例指向刚刚分配的内存
-3. 初始化实例（设置 i 和 s 的值）
-
-那么在步骤2执行完毕后，还未执行步骤3这一时刻，instance 实例不为 null，但是还未执行完成初始化（i 和 s 的值还是默认值）。假如恰好在此时，另一个线程进入 getInstance() 方法，判断 instance 实例不为 null，就直接返回了那个尚未被初始化完成的实例，那么它拿到的 i 和 s 就是默认值 0 和 null，而不是期望的 10 和 "OK"。
-
-而加了 volatile 修饰符之后，就可以指示 JVM 不要对该实例的读写操作进行指令重排，从而解决了部分初始化问题。
-
-> 其实除了禁用指令重排序， volatile 还有其他语义，这就涉及到可见性和 Java 内存模型的话题了，就先不展开了，后面再详细探讨。
+instance 实例必须要使用 volatile 修饰，是为了避免部分初始化问题。详细原因可以参见这篇文章：[深入理解 Java 内存模型]({{ site.baseurl }}/blog/2019/07/23/Java-Memory-Model/)
 
 * 方法3：Holder 方式
 
