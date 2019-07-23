@@ -143,8 +143,9 @@ i= 2；
 
 有了这些规则，就可以在必要的时候利用这些规则来保证关键变量的可见性。
 
-## 4、volatile
+# 四、volatile关键字
 
+## 1. volatile 的语义
 volatile 是 JVM 提供的一个轻量级的同步修饰符，具备两层语义：
 1. 保证此变量对所有线程的可见性。这个其实对应上面 Happens-before 规则的 volatile 变量规则。
 2. 禁止指令重排序优化。
@@ -175,7 +176,54 @@ public class NoVisibility {
 
 而通过把 `ready` 和 `number` 变量声明为 `volatile` 的，就可以保证 main 线程里的修改对于 ReaderThread 的可见性，同时禁用了指令重排序，保证程序按照期望执行。
 
-volatile 还有一个经典的使用场景，就是在DCL的单例中：
+## 2. volatile 不具备原子性
+
+但是有一点需要注意，`volatile` 并不具备原子性，看下面这个例子：
+
+```java
+public class IncreaseTest {
+    
+    public static volatile int race = 0;
+    
+    public static void increase() {
+        race++;
+    }    
+}
+```
+
+即使把 `race` 变量声明为 `volatile` 的，保证了可见性，但 `race++` 操作并不是原子的，所以在多线程同时调用 `increase()` 方法时，依旧存在竞态条件，考虑下面的情景：
+1. 线程1读取race值为 1
+2. 线程2读取race值也为 1
+3. 线程1执行自增操作，把增加后的值 2 写回race，注意由于步骤2里的读取操作在这次写入操作之前，不符合 Happens-before 规则，感知不到这次写入的新值。
+4. 线程2基于自己之前读取到的值 1（此时该值已经过期，但是线程2不知道），执行自增操作，把增加后的值 2 写回race，出现了问题。
+
+所以在这个场景中，不仅要保证 `race` 变量的可见性，还要保证 `increase()` 操作的原子性，这时候 `volatile` 就不够用了，得用效力更强的 `synchronized` 才行。
+
+## 3.volatile 的应用
+
+### 3.1 状态标记
+
+volatile 首先被用在各种状态标记量上，利用其可见性用于在线程之间传递标记信息。
+
+比如下面这个例子中，通过把 `asleep` 变量标记为 `volatile`，保证了线程2的修改对于线程1的可见性，避免了无限数羊： 
+
+```java
+volatile boolean asleep; 
+
+// 线程1
+while (!asleep) 
+    countSomeSheep();
+
+// 线程2
+asleep = true;
+
+```
+
+### 3.2 安全发布（Safe Publication）
+
+所谓安全发布，就是正确地把一个变量暴露给线程外部使用，而保证不会出现问题，其中一个重要手段就是利用 `volatile`。
+
+比如在DCL的单例中，如果处理不小心，就会出现部分初始化问题，暴露一个尚未完成初始化的实例给外部适用。：
 
 ```java
 public class LazySingletonDCL {
@@ -205,8 +253,6 @@ public class LazySingletonDCL {
 
 ```
 
-instance 实例必须要使用 volatile 修饰，是为了避免部分初始化问题，这里阐述一下原因。
-
 问题核心在于`instance = new LazySingletonDCL()` 这行语句并不是一个原子操作，实际上会被解析为如下三个步骤：
 
 1. 为实例分配内存空间 
@@ -222,8 +268,8 @@ instance 实例必须要使用 volatile 修饰，是为了避免部分初始化�
 那么在步骤2执行完毕后，还未执行步骤3这一时刻，instance 实例不为 null，但是还未执行完成初始化（i 和 s 的值还是默认值）。
 假如恰好在此时，另一个线程进入 getInstance() 方法，判断 instance 实例不为 null，就直接返回了那个尚未被初始化完成的实例，那么它拿到的 i 和 s 就是默认值 0 和 null，而不是期望的 10 和 "OK"。
 
-而加了 volatile 修饰符之后，就可以指示 JVM 不要进行指令重排，从而解决了部分初始化问题。
+而加了 volatile 修饰符之后，就可以指示 JVM 不要进行指令重排，从而解决了部分初始化问题，实现了安全发布。
 
-# 参考资料
+# 五、参考资料
 * 《Java Concurrency In Practice》
 * 《深入理解Java虚拟机》
