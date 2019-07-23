@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 深入理解 Java 中的 Future 和 FutureTask
+title: Java 中的 Future 和 FutureTask
 description: ""
 categories: [Java]
 tags: [Java, 并发]
