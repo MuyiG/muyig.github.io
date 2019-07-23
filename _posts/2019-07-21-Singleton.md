@@ -2,8 +2,8 @@
 layout: post
 title: 单例模式的Java实现与思考
 description: ""
-categories: [设计模式, Java, 并发]
-tags: 
+categories: [Java]
+tags: [Java, 并发, 设计模式]
 ---
 
 * Kramdown table of contents

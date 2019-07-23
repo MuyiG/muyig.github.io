@@ -2,8 +2,8 @@
 layout: post
 title: 深入理解 Java 内存模型
 description: ""
-categories: [Java, 并发]
-tags: 
+categories: [Java]
+tags: [Java, 并发]
 ---
 
 * Kramdown table of contents
