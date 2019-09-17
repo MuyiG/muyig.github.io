@@ -45,7 +45,7 @@ public class Singleton {
 ## 2.懒加载实现
 有时不想要实例过早初始化，而是在真正使用到的时候才初始化，这种策略被称为懒加载。
 
-### 2.1 基础实现
+### 2.1 简单实现（存在问题）
 
 ```java
 public class LazySingletonNaive {
@@ -65,9 +65,10 @@ public class LazySingletonNaive {
 }
 ```
 
-注意这里的 `getInstance` 方法存在竞态条件，有可能两个线程分别检查到 `instance == null`，然后各自执行了一次实例化操作。
+问题：
 
-而且由于指令重排的原因，还有可能造成部分初始化问题，这一点在后面 DCL 时会说到。
+1. 这里的 `getInstance` 方法存在竞态条件，有可能两个线程分别检查到 `instance == null`，然后各自执行了一次实例化操作。
+2. 由于指令重排的原因，还有可能造成部分初始化问题，这一点在后面 DCL 时会说到。
 
 ### 2.2 线程安全的懒加载
 
@@ -79,7 +80,7 @@ public class LazySingletonNaive {
 ...
 ```
 
-这种方式最简单，但会带来同步性能开销，仅在应用可以接受这种性能开销时使用。
+这种方式最直接，但会带来很高的同步性能开销，一般不会使用。
 
 * 方法2：Double Check Lock
 
@@ -140,7 +141,7 @@ public class LazySingletonHolder {
 > 
 > 答：如果按照上面贴出来的代码，`Singleton` 类的初始化时机只有一个，那就是 `getInstance` 方法调用时，那它其实就是懒加载。但是实际中，这个类里可能不止 `getInstance` 一个公开方法，如果还暴露了其他的公开方法或者变量，在访问那些方法或变量时，也会触发类的初始化，就会造成还没调用 `getInstance` 就初始化了实例的情况，所以说它没有实现懒加载。
 > 而 `LazySingletonHolder` 类里的 `Holder` 由于被限制为了私有，且静态变量的唯一访问时机就是 `getInstance` 方法，因此可以实现懒加载。
-> 所以这两个类的核心区别在于 `instance` 的初始化时机，`Singleton` 没有做严格管控，有可能会被提前初始化，`LazySingletonHolder` 做了严格管控，从而实现了懒加载。
+> 所以这两个类的核心区别在于 `instance` 的初始化时机，`Singleton` 没有做严格管控，有可能会由于别的不相关的操作而提前初始化，`LazySingletonHolder` 做了严格管控，从而实现了懒加载。
 
 # 三、几种方式的对比与总结
 结论：
