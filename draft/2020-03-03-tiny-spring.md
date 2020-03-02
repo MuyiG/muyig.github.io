@@ -351,7 +351,7 @@ public class TargetSource {
     // 被代理对象的类信息
     private Class<?> targetClass;
 
-    // 被代理对象实现的接口（为什么不通过targetClass获取？）
+    // 被代理对象实现的接口（一个疑问：为什么要显式传递，而不是通过targetClass获取？）
     private Class<?>[] interfaces;
 
     // 被代理对象的实例
