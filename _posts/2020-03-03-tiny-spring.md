@@ -1,6 +1,6 @@
 ---
 layout: post
-title: tiny-spring项目系统分析
+title: tiny-spring 项目源码分析 
 description: ""
 categories: [Java]
 tags: [Spring]
@@ -12,10 +12,6 @@ tags: [Spring]
 # 一、前言
 想研究 Spring 的源码，但是里面包和类众多、层级很深，看起来很不方便，后来发现了 tiny-spring 这个项目（
 https://github.com/code4craft/tiny-spring），可以认为是一个极简版本的 Spring，但是麻雀虽小五脏俱全，实现了最核心的 IOC 容器和 AOP 的功能，非常适合拿来入门研究和学习，本文就是对这个项目源码的一点分析。
-
-特别说明：
-1. 本文不会涉及Spring的基本用法和设计理念，如果想要了解这方面的信息，可以去看一下《Spring实战》和《Spring揭秘》的核心章节。
-2. IOC和AOP的实现用到了Java的反射和动态代理机制，这里也不做展开。
 
 # 二、Hello World
 把代码下载下来，在IDE里打开，整体项目结构如下：
@@ -292,7 +288,7 @@ protected Object initializeBean(Object bean, String name) throws Exception {
 继续从测试用例入手，我们来看 JdkDynamicAopProxyTest 这个类（Cglib2AopProxyTest和它几乎一致，只是创建代理时使用了cglib）：
 
 ```java
-public class Cglib2AopProxyTest {
+public class JdkDynamicAopProxyTest {
 
 	@Test
 	public void testInterceptor() throws Exception {
@@ -313,8 +309,8 @@ public class Cglib2AopProxyTest {
 		advisedSupport.setMethodInterceptor(timerInterceptor);
 
 		// 3. 创建代理(Proxy)
-        Cglib2AopProxy cglib2AopProxy = new Cglib2AopProxy(advisedSupport);
-		HelloWorldService helloWorldServiceProxy = (HelloWorldService) cglib2AopProxy.getProxy();
+		JdkDynamicAopProxy jdkDynamicAopProxy = new JdkDynamicAopProxy(advisedSupport);
+		HelloWorldService helloWorldServiceProxy = (HelloWorldService) jdkDynamicAopProxy.getProxy();
 
 		// 4. 基于AOP的调用
 		helloWorldServiceProxy.helloWorld();
@@ -325,17 +321,26 @@ public class Cglib2AopProxyTest {
 
 helloWorldService without AOP 部分还是IOC容器的内容，不再多说，看下面的 helloWorldService with AOP 部分，一步步来分析：
 
-1. 设置被代理对象
+1.设置被代理对象
 
 首先创建了一个 `AdvisedSupport` ，这个类存储了代理的元数据，具体来说就是下面三个东东：
 
 ```java
 public class AdvisedSupport {
 
+    /**
+    * 被代理的对象信息
+    */
     private TargetSource targetSource;
 
+    /**
+    * 方法拦截器信息
+    */
     private MethodInterceptor methodInterceptor;
 
+    /**
+    * ?
+    */
     private MethodMatcher methodMatcher;
 
     // ...
@@ -367,3 +372,100 @@ public class TargetSource {
 }
 
 ```
+
+2.设置拦截器
+
+设置 `AdvisedSupport` 的 `methodInterceptor` 属性，这里设置了一个简单的 `TimerInterceptor` ，只有计时功能：
+
+```java
+public class TimerInterceptor implements MethodInterceptor {
+
+	@Override
+	public Object invoke(MethodInvocation invocation) throws Throwable {
+		long time = System.nanoTime();
+		System.out.println("Invocation of Method " + invocation.getMethod().getName() + " start!");
+		Object proceed = invocation.proceed();
+		System.out.println("Invocation of Method " + invocation.getMethod().getName() + " end! takes " + (System.nanoTime() - time)
+				+ " nanoseconds.");
+		return proceed;
+	}
+	
+}
+```
+
+3.创建代理
+
+被代理的对象和拦截器准备就绪后，就可以执行创建代理了，这里是一个 `JdkDynamicAopProxy`。
+
+```java
+public class JdkDynamicAopProxy extends AbstractAopProxy implements InvocationHandler {
+
+    public JdkDynamicAopProxy(AdvisedSupport advised) {
+        super(advised);
+    }
+
+	@Override
+	public Object getProxy() {
+        // 使用 JDK 动态代理机制创建代理
+		return Proxy.newProxyInstance(getClass().getClassLoader(), advised.getTargetSource().getInterfaces(), this);
+	}
+
+	@Override
+	public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+		// 暂略
+	}
+
+}
+```
+
+父类 `AbstractAopProxy` 里没什么东西，就是存储了一个 `AdvisedSupport` 实例：
+
+```java
+public abstract class AbstractAopProxy implements AopProxy {
+
+    protected AdvisedSupport advised;
+
+    public AbstractAopProxy(AdvisedSupport advised) {
+        this.advised = advised;
+    }
+    
+}
+
+public interface AopProxy {
+
+    Object getProxy();
+    
+}
+
+```
+
+4.基于AOP的调用
+
+通过上面可知，我们此时拿到的 `HelloWorldService` 实例其实是一个动态代理对象，当调用其方法时，实际上会调用 `InvocationHandler` 的 `invoke` 方法：
+
+```java
+   public class JdkDynamicAopProxy extends AbstractAopProxy implements InvocationHandler {
+   
+       // ..
+   
+   	@Override
+   	public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+   		MethodInterceptor methodInterceptor = advised.getMethodInterceptor();
+   		if (advised.getMethodMatcher() != null
+   				&& advised.getMethodMatcher().matches(method, advised.getTargetSource().getTarget().getClass())) {
+   			return methodInterceptor.invoke(new ReflectiveMethodInvocation(advised.getTargetSource().getTarget(),
+   					method, args));
+   		} else {
+   			return method.invoke(advised.getTargetSource().getTarget(), args);
+   		}
+   	}
+   
+   }
+   ```
+
+终于在这里 `MethodMatcher` 派上了用场，其作用是判断当前调用的方法是否是需要进行拦截，如果是，则调用我们设置好的 `MethodInterceptor` 的 `invoke` 方法；
+否则，就直接调用目标对象，什么额外逻辑也不做。
+
+至此就把 `JdkDynamicAopProxyTest` 的主要逻辑也梳理完毕了。
+
+（其实 AOP 包下还有很多内容，不过到这里篇幅也不短了，之后再开新坑吧。。）
