@@ -1,6 +1,6 @@
 ---
 layout: post
-title: tiny-spring 项目源码分析 
+title: tiny-spring 项目源码分析（一） 
 description: ""
 categories: [Java]
 tags: [Spring]
@@ -49,7 +49,7 @@ public class ApplicationContextTest {
 
 HelloWorldService 是一个非常简单的服务，调用了 OutputService 来输出自己的成员变量 text：
 
-```Java
+```java
 public class HelloWorldServiceImpl implements HelloWorldService {
 
     private String text;
@@ -74,7 +74,7 @@ public class HelloWorldServiceImpl implements HelloWorldService {
 
 然后 OutputServiceImpl 就是直接调用系统输出：
 
-```Java
+```java
 public class OutputServiceImpl implements OutputService {
 
     @Override
