@@ -4,7 +4,7 @@
 
 source "https://gems.ruby-china.com"
 
-gem 'jekyll', '= 3.5.2' # locked in to be consistent GitHub Pages.
+gem 'jekyll', '3.6.3' # locked in to be consistent GitHub Pages.
 
 group :jekyll_plugins do
   gem 'jekyll-feed'
