@@ -1,6 +1,6 @@
 ---
 layout: post
-title: tiny-spring 项目源码分析（一） 
+title: tiny-spring 源码分析
 description: ""
 categories: [Java]
 tags: [Spring]
@@ -10,16 +10,17 @@ tags: [Spring]
 {:toc .toc}
 
 # 一、前言
-想研究 Spring 的源码，但是里面包和类众多、层级很深，看起来很不方便，后来发现了 tiny-spring 这个项目（
-https://github.com/code4craft/tiny-spring），可以认为是一个极简版本的 Spring，但是麻雀虽小五脏俱全，实现了最核心的 IOC 容器和 AOP 的功能，非常适合拿来入门研究和学习，本文就是对这个项目源码的一点分析。
+想研究 Spring 的源码，但是里面包和类众多、层级很深，不知道如何入手。后来发现了 [tiny-spring](
+https://github.com/code4craft/tiny-spring) 这个项目，可以认为是一个极简版本的 Spring，但是麻雀虽小五脏俱全，实现了最核心的 IOC 容器和 AOP 的功能，非常适合拿来入门研究和学习，本文就是对这个项目源码的一点分析。
 
 # 二、Hello World
-把代码下载下来，在IDE里打开，整体项目结构如下：
+把代码下载下来，在IDE里打开，整体项目结构如下，是一个标准 Maven 工程：
+
 ![1]({{ site.baseurl }}/assets/images/posts/tinyspring/1.png)
 
-是一个标准 Maven 工程，除了源码，还有一些测试代码，可以从测试代码上手，先来看一下 ApplicationContextTest ，很标准的 Spring 容器使用范例：
+我们可以从作者提供的测试代码上手，先来看一下 ApplicationContextTest ，很标准的 Spring IOC 容器使用范例：
 
-```Java
+```java
 public class ApplicationContextTest {
     @Test
     public void test() throws Exception {
@@ -89,9 +90,9 @@ public class OutputServiceImpl implements OutputService {
 
 接下来看一下 Spring 两大核心 IOC 容器和 AOP 的实现。
 
-
 # 三、IOC 容器的实现
 IOC 容器的实现在beans包下面，结构如下图所示：
+
 ![2]({{ site.baseurl }}/assets/images/posts/tinyspring/2.png)
 
 IOC容器的核心类是 BeanFactory，继续从测试用例入手，看看 BeanFactoryTest 的代码：
@@ -277,13 +278,17 @@ protected Object initializeBean(Object bean, String name) throws Exception {
 
 至此，获取 Bean 的流程就走完了，我们拿到了一个初始化过且注入了依赖的完整 Bean 实例。
 
-此时再去看 context 包下面的几个类，会发现 ApplicationContext 其实就是把上面的1,2,3步揉在了一起，没有什么新东西的，不再赘述。
+此时再去看 context 包下面的几个类，会发现 ApplicationContext 其实就是把上面的1,2,3 步揉在了一起，没有什么新东西，不再赘述。
 
 # 四、AOP 的实现
 
-好了，接下来进入 AOP 的世界，先来看一下整体的包结构：
-
+接下来分析一下 AOP 模块的实现。先来看一下整体包结构：
+                       
 ![3]({{ site.baseurl }}/assets/images/posts/tinyspring/3.png)
+
+另外还要特别注意一下 aopalliance 这个三方包，这个项目的目的是规范和统一 AOP 中的概念，核心类如下所示（关于这些类的含义这里不再展开，想详细了解的可以去 [官网](http://aopalliance.sourceforge.net/)）：
+
+![4]({{ site.baseurl }}/assets/images/posts/tinyspring/4.png)
 
 继续从测试用例入手，我们来看 JdkDynamicAopProxyTest 这个类（Cglib2AopProxyTest和它几乎一致，只是创建代理时使用了cglib）：
 
@@ -321,7 +326,7 @@ public class JdkDynamicAopProxyTest {
 
 helloWorldService without AOP 部分还是IOC容器的内容，不再多说，看下面的 helloWorldService with AOP 部分，一步步来分析：
 
-1.设置被代理对象
+## 1.设置被代理对象
 
 首先创建了一个 `AdvisedSupport` ，这个类存储了代理的元数据，具体来说就是下面三个东东：
 
@@ -373,7 +378,7 @@ public class TargetSource {
 
 ```
 
-2.设置拦截器
+## 2.设置拦截器
 
 设置 `AdvisedSupport` 的 `methodInterceptor` 属性，这里设置了一个简单的 `TimerInterceptor` ，只有计时功能：
 
@@ -393,7 +398,7 @@ public class TimerInterceptor implements MethodInterceptor {
 }
 ```
 
-3.创建代理
+## 3.创建代理
 
 被代理的对象和拦截器准备就绪后，就可以执行创建代理了，这里是一个 `JdkDynamicAopProxy`。
 
@@ -439,7 +444,7 @@ public interface AopProxy {
 
 ```
 
-4.基于AOP的调用
+## 4.实际调用
 
 通过上面可知，我们此时拿到的 `HelloWorldService` 实例其实是一个动态代理对象，当调用其方法时，实际上会调用 `InvocationHandler` 的 `invoke` 方法：
 
@@ -467,5 +472,3 @@ public interface AopProxy {
 否则，就直接调用目标对象，什么额外逻辑也不做。
 
 至此就把 `JdkDynamicAopProxyTest` 的主要逻辑也梳理完毕了。
-
-（其实 AOP 包下还有很多内容，不过到这里篇幅也不短了，之后再开新坑吧。。）

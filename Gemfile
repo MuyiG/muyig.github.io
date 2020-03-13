@@ -2,7 +2,7 @@
 # If you've just forked the repo,
 # please remove the content above and uncomment the following before bundling.
 
-source "https://rubygems.org"
+source "https://gems.ruby-china.com"
 
 gem 'jekyll', '= 3.5.2' # locked in to be consistent GitHub Pages.
 

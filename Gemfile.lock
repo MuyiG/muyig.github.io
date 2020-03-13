@@ -1,10 +1,11 @@
 GEM
-  remote: https://rubygems.org/
+  remote: https://gems.ruby-china.com/
   specs:
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     colorator (1.1.0)
-    ffi (1.9.18)
+    ffi (1.12.2)
+    ffi (1.12.2-x64-mingw32)
     forwardable-extended (2.6.0)
     jekyll (3.5.2)
       addressable (~> 2.4)
@@ -51,6 +52,7 @@ GEM
 
 PLATFORMS
   ruby
+  x64-mingw32
 
 DEPENDENCIES
   jekyll (= 3.5.2)
@@ -60,4 +62,4 @@ DEPENDENCIES
   jekyll-sitemap
 
 BUNDLED WITH
-   1.16.0
+   1.16.2
